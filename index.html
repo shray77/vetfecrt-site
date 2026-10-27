@@ -41,12 +41,27 @@
 
   /* v2.2: мастхед-паттерн ядра — локальные правила только контейнерные */
   .wrap { max-width: 980px; margin: 0 auto; padding: 0 20px; }
+  /* QA Task 181: мета-полоса мастхеда прилипала к заголовку (зазор 0px) —
+     периодика требует воздух между выпускной строкой и шапкой номера */
+  .ds-masthead-meta { margin-bottom: 12px; }
   .ds-hub { max-width: 980px; margin: 0 auto; padding: 12px 20px 0; }
   .ds-rule-double { max-width: 980px; margin: 0 auto; }
   .ds-footer--meta .wrap { display: flex; flex-direction: column; gap: var(--ds-space-2); }
   .ds-footer--meta .legal { color: var(--orange); }
 
   section.fx { margin: 26px 0 10px; }
+  /* QA Task 181: в тёмной оболочке формуляр красился ядром во всю ширину —
+     яркая полоса edge-to-edge читалась как «белый slab». Канон vettools —
+     «бумага на вечернем столе»: лист ОГРАНИЧЕН (рамка-волос, скругление,
+     тень, внутренние поля), а не заливает экран. В светлой оболочке бумага
+     сливается со страницей — containment не нужен. */
+  [data-theme="dark"] #calc {
+    border: 1px solid #857F6E;            /* сепия-тушь формуляра (v2.3.3) */
+    border-radius: var(--ds-radius);
+    box-shadow: 0 12px 32px rgba(0,0,0,.45), 0 1px 2px rgba(0,0,0,.3);
+    padding: 18px 20px 20px;
+    margin: 26px 0 10px;
+  }
   section.fx > h2, article.doc h2 { font-family: var(--ds-font-display); font-weight: 400; font-size: 24px; margin: 0 0 4px; letter-spacing: -.01em; }
   .sub { color: var(--muted); font-size: 13.5px; margin: 0 0 14px; }
 
@@ -346,12 +361,11 @@
   var $ = function (id) { return document.getElementById(id); };
 
   /* ---- тема ---------------------------------------------------------------- */
+  /* QA Task 181: у ядра этикетка уже рисуется ::after («тёмная»/«светлая»),
+     наш JS вдобавок писал «ночь»/«день» в сам span — на экране слипалось
+     «ночьтёмная». Канон (vetflu): span остаётся пустым, текст — только ::after. */
   var toggle = $('themeToggle');
-  function setThemeLabel() {
-    var dark = document.documentElement.getAttribute('data-theme') === 'dark';
-    var lbl = toggle.querySelector('.ds-theme-toggle__label');
-    if (lbl) lbl.textContent = dark ? 'ночь' : 'день';
-  }
+  function setThemeLabel() {}   /* этикетка — целиком на ядре (::after) */
   toggle.addEventListener('click', function () {
     var dark = document.documentElement.getAttribute('data-theme') === 'dark';
     if (dark) { document.documentElement.removeAttribute('data-theme'); try { localStorage.removeItem('vetds-theme'); } catch (e) {} }
