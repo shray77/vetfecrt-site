@@ -111,6 +111,10 @@
   .fx-err { border: 1px solid color-mix(in srgb, var(--red) 40%, transparent); background: color-mix(in srgb, var(--red) 8%, transparent);
     border-radius: var(--ds-radius-s); padding: 10px 12px; font-size: 13px; margin: 10px 0; }
   .fx-err b { color: var(--red); }
+  /* Аудит 181-a №4: до первого ввода — нейтральная подсказка (пунктир формуляра),
+   * красная рамка — только за реальный мусор. */
+  .fx-empty { border: 1px dashed var(--ds-border-strong); border-radius: var(--ds-radius-s);
+    padding: 16px 12px; font-size: 13px; color: var(--faint); margin: 10px 0; }
   .fx-thrline { font: 11.5px var(--mono); color: var(--faint); margin-top: 10px; }
   .fx-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
   .fx-actions .ds-btn { font: 600 12.5px var(--mono); }
@@ -119,6 +123,8 @@
   table.fx-genus-tbl td { padding: 6px 8px; border-bottom: 1px solid var(--border); color: var(--muted); }
   table.fx-genus-tbl tr:last-child td { border-bottom: none; }
   table.fx-genus-tbl td b { color: var(--text); }
+  /* Аудит 181-a №13: подпись-сноска таблицы родов (периодика: caption снизу) */
+  table.fx-genus-tbl caption { caption-side: bottom; text-align: left; font-size: 10.5px; color: var(--faint); padding-top: 8px; }
 
   /* -- справка: голос периодики ---------------------------------------------- */
   article.doc { background: var(--surface); border: 1px solid var(--border); border-radius: var(--ds-radius); padding: var(--ds-space-4) var(--ds-space-5); margin: 16px 0; }
@@ -195,7 +201,7 @@
   <section class="fx" id="calc" data-theme="form">
     <p class="ds-overline">раздел «действуешь» · голос B</p>
     <h2>Лист расчёта</h2>
-    <p class="sub">Введите счёты яиц (EPG) каждой пробы — числами через запятую, пробел или с новой строки. Пересчёт живой: поменяйте число — вердикт пересчитается. Одинаковый ввод всегда даёт одинаковый интервал.</p>
+    <p class="sub">Введите счёты яиц (EPG) каждой пробы — целыми числами через запятую, пробел или с новой строки (точка — не дробь: счёты яиц не дробят). Пересчёт живой: поменяйте число — вердикт пересчитается. Одинаковый ввод всегда даёт одинаковый интервал.</p>
 
     <div class="fx-form">
       <div class="fx-row">
@@ -374,6 +380,13 @@
   });
   setThemeLabel();
 
+  /* Аудит 181-a №11: ядро не загрузилось — внятное сообщение вместо тихого
+   * TypeError на F.THRESHOLDS (тема и дата живут выше и работают без ядра). */
+  if (!F) {
+    $('result').innerHTML = '<div class="fx-err"><b>ядро не загрузилось.</b><br>fecrt.js недоступен — обновите страницу или загляните в консоль браузера.</div>';
+    return;
+  }
+
   /* дата мастхеда */
   (function () {
     var el = document.querySelector('.ds-masthead-meta .m-date');
@@ -395,6 +408,11 @@
     if (sp.drugs[cur]) sel.value = cur;
     $('nmin-hint').textContent = 'норма: ' + sp.nMinSource;
     $('interval-hint').textContent = 'проба после лечения: ' + sp.intervalDays;
+    /* Аудит 181-a №8: у лошадей блок культуры L3 не применим (роды различимы
+     * в камере) — прятать, а не молча игнорировать заполненные доли. */
+    var gd = $('genus-details');
+    gd.hidden = ($('species').value === 'horse');
+    if (gd.hidden) gd.open = false;
   }
   $('species').addEventListener('change', drugOptions);
   drugOptions();
@@ -412,14 +430,24 @@
   });
 
   /* ---- род-специфичный блок: сумма долей ----------------------------------- */
+  /* Аудит 181-a №9: поля долей глотали мусор молча (NaN → 0) и принимали
+   * минус. Теперь — явные ошибки с перечислением, как у счётов. Доли —
+   * проценты, дробная часть через запятую (37,5) — правило, обратное EPG. */
+  function parseShare(t, bad, where) {
+    if (t === '') return 0;
+    var norm = t.replace(',', '.');
+    if (!/^\d+(\.\d+)?$/.test(norm)) { bad.push(where + ' — «' + t + '»'); return 0; }
+    return parseFloat(norm);
+  }
   function genusShares() {
-    var rows = [];
+    var rows = [], bad = [];
     for (var i = 0; i < 4; i++) {
       var name = $('g-name-' + i).value.trim() || ('род ' + (i + 1));
-      var pre = parseFloat($('g-pre-' + i).value.replace(',', '.'));
-      var post = parseFloat($('g-post-' + i).value.replace(',', '.'));
-      rows.push({ name: name, pre: isNaN(pre) ? 0 : pre, post: isNaN(post) ? 0 : post });
+      var pre = parseShare($('g-pre-' + i).value.trim(), bad, 'доля до «' + name + '»');
+      var post = parseShare($('g-post-' + i).value.trim(), bad, 'доля после «' + name + '»');
+      rows.push({ name: name, pre: pre, post: post });
     }
+    rows.bad = bad;
     return rows;
   }
   function genusSumLabel() {
@@ -437,9 +465,11 @@
   genusSumLabel();
 
   /* ---- форматирование по-русски -------------------------------------------- */
+  /* Аудит 181-a №6: ru-RU — неразрывная группировка разрядов («12 345,6»)
+   * и запятая; канон соседних витрин (vettools fmt()). */
   function fmtNum(x) {
     if (x === null || x === undefined || isNaN(x)) return '—';
-    return String(Math.round(x * 10) / 10).replace('.', ',');
+    return (Math.round(x * 10) / 10).toLocaleString('ru-RU', { maximumFractionDigits: 1 });
   }
   function fmtPct(x) { return fmtNum(x) + '%'; }
   function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
@@ -464,10 +494,13 @@
     var cpre = parseField('cpre'), cpost = parseField('cpost');
     var errs = [], warns = [];
 
-    [pre, post, cpre, cpost].forEach(function (p, i) {
-      if (!p.ok && p.touched) {
-        var where = ['до лечения', 'после лечения', 'контроль до', 'контроль после'][i];
-        errs.push('поле «' + where + '»: не понял «' + p.bad.map(esc).join('», «') + '» — нужны числа EPG (разделители: запятая, пробел, новая строка)');
+    /* Аудит 181-a №1: контрольные поля валидируются ТОЛЬКО в режиме контроля —
+     * мусор в скрытом поле не имеет права блокировать парный расчёт. */
+    var checks = [[pre, 'до лечения'], [post, 'после лечения']];
+    if (designMode() === 'control') checks.push([cpre, 'контроль до'], [cpost, 'контроль после']);
+    checks.forEach(function (c) {
+      if (!c[0].ok && c[0].touched) {
+        errs.push('поле «' + c[1] + '»: не понял «' + c[0].bad.join('», «') + '» — нужны целые числа EPG (разделители: запятая, пробел, новая строка; точка — не дробь)');
       }
     });
 
@@ -478,16 +511,37 @@
       post: post.values
     };
     if (designMode() === 'control') input.control = { pre: cpre.values, post: cpost.values };
-    if ($('genus-details').open && $('species').value !== 'horse') input.genus = genusShares();
+    var genusRows = null;
+    if ($('genus-details').open && $('species').value !== 'horse') {
+      genusRows = genusShares();
+      if (genusRows.bad.length) {
+        errs.push('культура L3: ' + genusRows.bad.join('; ') + ' — доли задают в процентах (например 60 или 37,5)');
+      } else {
+        input.genus = genusRows;
+      }
+    }
 
     var r = (errs.length === 0) ? F.compute(input) : { error: errs.join('; ') };
 
     if (r.error) {
-      out.innerHTML = '<div class="fx-err"><b>ввод не готов.</b><br>' + esc(r.error) + '</div>';
+      /* Аудит 181-a №4: нетронутая страница — нейтральная подсказка, красная
+       * ошибка — только когда ввод уже начат. */
+      var pristine = !pre.touched && !post.touched &&
+        (designMode() !== 'control' || (!cpre.touched && !cpost.touched));
+      out.innerHTML = pristine
+        ? '<div class="fx-empty">введите счёты яиц до и после лечения — снижение, 90% ДИ и вердикт появятся здесь</div>'
+        : '<div class="fx-err"><b>ввод не готов.</b><br>' + esc(r.error) + '</div>';
       return;
     }
     if (r.n < r.nMin) {
       warns.push('<b>мало животных.</b> В группе ' + r.n + ' при норме ≥ ' + r.nMin + ' — интервал широкий, вердикт ненадёжен: ' + esc(r.nMinSource) + '.');
+    }
+    /* Аудит 181-a №3: правила отбора из справки больше не молчат в калькуляторе. */
+    if ($('species').value === 'horse' && pre.values.some(function (v) { return v < 25; })) {
+      warns.push('<b>порог обнаружения.</b> У части лошадей счёт до лечения &lt; 25 EPG — по NOAH таких животных исключают из расчёта: метод не видит яиц.');
+    }
+    if ($('species').value !== 'horse' && r.meanPre < 150) {
+      warns.push('<b>низкий счёт до лечения.</b> Среднее ' + fmtNum(r.meanPre) + '\u00A0EPG — классика WAAVP требует до обработки ≥\u00A0150\u00A0EPG, иначе ДИ широкий.');
     }
     if (r.ci && (r.ci.valid < r.ci.iters * 0.99)) {
       warns.push('<b>бутстрэп с пропусками:</b> реплик ' + r.ci.valid + ' из ' + r.ci.iters + ' — в перевыборках встречались нулевые счёты до лечения.');
@@ -497,9 +551,10 @@
     }
 
     var v = VERDICT[r.verdict.code];
+    /* Аудит 181-a №12: диапазон — тире, как в копируемом отчёте, а не многоточие */
     var ciTxt = (r.ci.lo === null || r.ci.hi === null)
       ? 'ДИ не определён — данных мало'
-      : '90% ДИ: ' + fmtPct(r.ci.lo) + ' … ' + fmtPct(r.ci.hi);
+      : '90% ДИ: ' + fmtPct(r.ci.lo) + '–' + fmtPct(r.ci.hi);
 
     var h = '';
     h += '<div class="ds-card">';
@@ -509,21 +564,21 @@
     h += '<p class="fx-why">снижение счёта яиц · ' + esc(r.verdict.why) + '</p>';
     h += '<div class="fx-stats">';
     h += '<div class="fx-stat">проб (n)<b>' + r.n + '</b></div>';
-    h += '<div class="fx-stat">среднее до<b>' + fmtNum(r.meanPre) + ' EPG</b></div>';
-    h += '<div class="fx-stat">среднее после<b>' + fmtNum(r.meanPost) + ' EPG</b></div>';
+    h += '<div class="fx-stat">среднее до<b>' + fmtNum(r.meanPre) + '\u00A0EPG</b></div>';
+    h += '<div class="fx-stat">среднее после<b>' + fmtNum(r.meanPost) + '\u00A0EPG</b></div>';
     if (r.control) {
       h += '<div class="fx-stat">контроль, n<b>' + r.control.n + '</b></div>';
-      h += '<div class="fx-stat">контроль до → после<b>' + fmtNum(r.control.meanPre) + ' → ' + fmtNum(r.control.meanPost) + ' EPG</b></div>';
+      h += '<div class="fx-stat">контроль до → после<b>' + fmtNum(r.control.meanPre) + ' → ' + fmtNum(r.control.meanPost) + '\u00A0EPG</b></div>';
     }
     h += '</div>';
 
     warns.forEach(function (w) { h += '<div class="fx-warn">' + w + '</div>'; });
 
     if (r.genus && r.genus.rows.length) {
-      h += '<div class="tbl-scroll"><table class="fx-genus-tbl"><thead><tr><th>род</th><th>доля до → после</th><th>FECR</th><th>90% ДИ</th><th>вердикт</th></tr></thead><tbody>';
+      h += '<div class="tbl-scroll"><table class="fx-genus-tbl"><caption>роды — пересчёт по культуре L3</caption><thead><tr><th>род</th><th>доля до → после</th><th>FECR</th><th>90% ДИ</th><th>вердикт</th></tr></thead><tbody>';
       r.genus.rows.forEach(function (g) {
         var gv = VERDICT[g.verdict.code];
-        var gci = (g.ci && g.ci.lo !== null) ? fmtPct(g.ci.lo) + ' … ' + fmtPct(g.ci.hi) : '—';
+        var gci = (g.ci && g.ci.lo !== null) ? fmtPct(g.ci.lo) + '–' + fmtPct(g.ci.hi) : '—';
         h += '<tr><td><b>' + esc(g.name) + '</b></td><td>' + fmtNum(g.sharePre) + '% → ' + fmtNum(g.sharePost) + '%</td>'
            + '<td><b>' + fmtPct(g.fecr) + '</b></td><td>' + gci + '</td><td><span class="' + gv.cls + '">' + gv.label + '</span></td></tr>';
       });
@@ -546,7 +601,7 @@
     var v = VERDICT[r.verdict.code];
     var lines = [];
     lines.push('ФЭКРТ — ' + r.species + ', ' + r.drug);
-    lines.push('n=' + r.n + ' · среднее до ' + fmtNum(r.meanPre) + ' EPG → после ' + fmtNum(r.meanPost) + ' EPG' + (r.control ? ' · контроль n=' + r.control.n + ' (' + fmtNum(r.control.meanPre) + '→' + fmtNum(r.control.meanPost) + ')' : ''));
+    lines.push('n=' + r.n + ' · среднее до ' + fmtNum(r.meanPre) + '\u00A0EPG → после ' + fmtNum(r.meanPost) + '\u00A0EPG' + (r.control ? ' · контроль n=' + r.control.n + ' (' + fmtNum(r.control.meanPre) + '→' + fmtNum(r.control.meanPost) + ')' : ''));
     lines.push('Редукция: ' + fmtPct(r.point) + ' (' + ((r.ci.lo !== null) ? '90% ДИ ' + fmtPct(r.ci.lo) + '–' + fmtPct(r.ci.hi) : 'ДИ не определён') + ')');
     lines.push('Вердикт: ' + v.label.toUpperCase() + ' — ' + r.verdict.why);
     if (r.n < r.nMin) lines.push('(!) животных меньше нормы: ' + r.n + ' из ≥ ' + r.nMin);

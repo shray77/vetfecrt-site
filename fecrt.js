@@ -46,7 +46,10 @@
   /* ---- разбор ввода счётов: RU-запятая как разделитель списка ----------- */
   /* Урок Task 178 (ветвойс): русская запятая — главный молчаливый убийца
    * числового ввода. Здесь запятая/точка-с-запятой/пробелы/переводы строк —
-   * РАВНОЦЕННЫЕ разделители списка; мусор и минусы — ошибки с перечислением. */
+   * РАВНОЦЕННЫЕ разделители списка; мусор и минусы — ошибки с перечислением.
+   * Аудит Task 181-a: EPG — ЦЕЛЫЕ числа, точка — не дробь («1.5» — ошибка,
+   * а не 1,5): счёты яиц не дробят, а точка жила по правилу, обратному
+   * полям долей культуры L3 (там запятая — десятичная). */
   function parseCounts(text) {
     var out = { ok: false, values: [], bad: [] };
     if (typeof text !== 'string' || text.trim() === '') { out.ok = true; return out; }
@@ -54,10 +57,8 @@
     for (var i = 0; i < tokens.length; i++) {
       var t = tokens[i];
       if (t === '') continue;                      /* двойной разделитель — не ошибка */
-      if (!/^\d+(\.\d+)?$/.test(t)) { out.bad.push(t); continue; }
-      var v = parseFloat(t);
-      if (v < 0) { out.bad.push(t); continue; }
-      out.values.push(v);
+      if (!/^\d+$/.test(t)) { out.bad.push(t); continue; }   /* целые EPG: точка/минус/мусор — bad */
+      out.values.push(parseFloat(t));
     }
     out.ok = out.bad.length === 0;
     return out;
@@ -90,8 +91,9 @@
   }
 
   /* ---- бутстрэп 90% ДИ --------------------------------------------------- */
-  /* Перцентили: k5 = ⌈0.05N⌉-я статистика, k95 = ⌊0.95N⌋+1-я (0-индексация),
-   * определение фиксировано — золотые ответы тестов стабильно бьют в него. */
+  /* Перцентили: k = ⌈p·N⌉−1 (0-индексация) — при N = 10 000 индексы 499 и
+   * 9499; определение фиксировано — золотые ответы тестов стабильно бьют в
+   * него. (Аудит 181-a: комментарий дрейфанул от формулы — приведён.) */
   function percentile(sorted, p, n) {
     var k = Math.ceil(p * n) - 1;
     if (k < 0) k = 0;
@@ -99,7 +101,7 @@
     return sorted[k];
   }
 
-  function resample(rnd, arr, idxs) {
+  function resample(arr, idxs) {
     var s = 0;
     for (var j = 0; j < idxs.length; j++) s += arr[idxs[j]];
     return s / idxs.length;
@@ -122,9 +124,9 @@
     var reps = [], skipped = 0;
     for (var i = 0; i < iters; i++) {
       var idx = drawIdx(rnd, n);
-      var m1 = resample(rnd, pre, idx);
+      var m1 = resample(pre, idx);
       if (m1 === 0) { skipped++; continue; }
-      var m2 = resample(rnd, post, idx);
+      var m2 = resample(post, idx);
       reps.push(m2 === 0 ? 100 : 100 * (1 - m2 / m1));
     }
     if (reps.length < Math.max(100, iters / 100)) {   /* выродился — данных нет */
@@ -153,8 +155,8 @@
     var reps = [], skipped = 0;
     for (var i = 0; i < iters; i++) {
       var iT = drawIdx(rnd, nT), iC = drawIdx(rnd, nC);
-      var mT1 = resample(rnd, t1, iT), mT2 = resample(rnd, t2, iT);
-      var mC1 = resample(rnd, c1, iC), mC2 = resample(rnd, c2, iC);
+      var mT1 = resample(t1, iT), mT2 = resample(t2, iT);
+      var mC1 = resample(c1, iC), mC2 = resample(c2, iC);
       if (mT1 === 0 || mC1 === 0) { skipped++; continue; }
       var ctrl = mC2 / mC1;
       reps.push(ctrl === 0 ? 100 : 100 * (1 - (mT2 / mT1) / ctrl));

@@ -295,3 +295,56 @@ test('compute: род-специфичный режим добавляет ст�
   assert.ok(near(r.genus.rows[1].fecr, 350 / 3.6, 1e-9));
   assert.ok(r.genus.rows[1].verdict.code === 'S' || r.genus.rows[1].verdict.code === 'GREY');
 });
+
+/* ---------- 8. волна Task 182: целые EPG и сквозные границы --------------- */
+
+test('parseCounts: точка — не дробь: EPG целые (аудит 181-a)', () => {
+  const r = FECRT.parseCounts('1.5 500');
+  assert.equal(r.ok, false);
+  assert.deepEqual(r.bad, ['1.5']);
+  assert.deepEqual(r.values, [500]);   /* валидные не теряются */
+});
+
+test('parseCounts: «37,5» — это два числа 37 и 5 (запятая — разделитель списка)', () => {
+  const r = FECRT.parseCounts('37,5');
+  assert.ok(r.ok);
+  assert.deepEqual(r.values, [37, 5]);
+});
+
+test('compute: пустые ряды — внятная ошибка, не тихий NaN', () => {
+  const r = FECRT.compute({ species: 'smallRuminant', drug: 'bzd', pre: [], post: [] });
+  assert.match(r.error, /введите/);
+});
+
+test('compute: полный ноль после лечения — 100%, вердикт «восприимчив»', () => {
+  const r = FECRT.compute({
+    species: 'smallRuminant', drug: 'bzd',
+    pre: [500, 400, 600, 300], post: [0, 0, 0, 0],
+  });
+  assert.equal(r.error, undefined);
+  assert.equal(r.point, 100);
+  assert.equal(r.verdict.code, 'S');
+});
+
+test('compute: счёт не снизился — 0%, вердикт «резистентность»', () => {
+  const r = FECRT.compute({
+    species: 'smallRuminant', drug: 'bzd',
+    pre: [500, 400, 600, 300], post: [500, 400, 600, 300],
+  });
+  assert.ok(near(r.point, 0, 1e-9));
+  assert.equal(r.verdict.code, 'R');
+});
+
+test('classify: верх ДИ ровно на минимуме M — серая зона (сравнение строгое)', () => {
+  assert.equal(FECRT.classify({ lo: 80, hi: 90 }, { E: 95, M: 90 }).code, 'GREY');
+});
+
+test('compute: n=1 — не падает, ДИ схлопывается в точку', () => {
+  const r = FECRT.compute({ species: 'horse', drug: 'ml', pre: [600], post: [90] });
+  assert.equal(r.error, undefined);
+  assert.ok(near(r.point, 85, 1e-9));
+  assert.ok(near(r.ci.lo, 85, 1e-9));
+  assert.ok(near(r.ci.hi, 85, 1e-9));
+  assert.equal(r.n, 1);
+  assert.equal(r.nMin, 6);
+});
