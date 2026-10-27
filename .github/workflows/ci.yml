@@ -1,0 +1,22 @@
+name: fecrt-gate
+
+# Гейт витрины: арифметика ФЭКРТ обязана держать известные ответы.
+# Наследие Task 174 («гейты не вызывались ни одним CI») — здесь гейт
+# в CI с первого дня, а не на памяти владельца.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  known-answers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Известные ответы + золото бутстрэпа + verify порогов
+        run: node --test tests/fecrt.test.mjs
