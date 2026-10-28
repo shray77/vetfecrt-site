@@ -11,7 +11,7 @@
  *  5. классификация — границы серой зоны;
  *  6. род-специфичный пересчёт — известная арифметика.
  *
- * Запуск: node --test tests/   (CI: .github/workflows/ci.yml)
+ * Запуск: node --test tests/fecrt.test.mjs   (CI: .github/workflows/ci.yml)
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';

@@ -355,7 +355,7 @@
 
 <footer class="ds-footer ds-footer--meta">
   <div class="wrap">
-    <span class="legal">полевой скрининг · не эталонный метод · не заменяет заключение паразитолога и лабораторию · вердикт — о стаде, не об животном · <a href="./terms.html">условия и дисклеймер</a></span>
+    <span class="legal">полевой скрининг · не эталонный метод · не заменяет заключение паразитолога и лабораторию · вердикт — о стаде, не о животном · <a href="./terms.html">условия и дисклеймер</a></span>
     <span>v1.0 · методика WAAVP-2023 · 90% ДИ — детерминированный бутстрэп · арифметика гейтится известными ответами (node --test)</span>
     <span>источники: <a href="https://pubmed.ncbi.nlm.nih.gov/37121092/">гайдлайн WAAVP-2023</a> · <a href="https://www.fecrt.com/">fecrt.com</a> · <a href="https://noah.co.uk/equines/fecrt-testing">NOAH: кони</a> · ядро — <a href="https://github.com/shray77/vet-ds">vet-ds</a> · <a href="https://github.com/shray77/vetfecrt-site">репозиторий</a></span>
   </div>
@@ -382,18 +382,19 @@
   });
   setThemeLabel();
 
+  /* дата мастхеда — Аудит 183 (хвост): блок поднят выше гварда ядра, чтобы
+     обещание комментария ниже («дата живёт и без fecrt.js») было правдой. */
+  (function () {
+    var el = document.querySelector('.ds-masthead-meta .m-date');
+    if (el) el.textContent = new Date().toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  })();
+
   /* Аудит 181-a №11: ядро не загрузилось — внятное сообщение вместо тихого
    * TypeError на F.THRESHOLDS (тема и дата живут выше и работают без ядра). */
   if (!F) {
     $('result').innerHTML = '<div class="fx-err"><b>ядро не загрузилось.</b><br>fecrt.js недоступен — обновите страницу или загляните в консоль браузера.</div>';
     return;
   }
-
-  /* дата мастхеда */
-  (function () {
-    var el = document.querySelector('.ds-masthead-meta .m-date');
-    if (el) el.textContent = new Date().toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-  })();
 
   /* ---- зависимые списки: вид → препарат, подсказки ------------------------- */
   function drugOptions() {
@@ -537,8 +538,14 @@
         : '<div class="fx-err"><b>ввод не готов.</b><br>' + esc(r.error) + '</div>';
       return;
     }
-    if (r.n < r.nMin) {
-      warns.push('<b>мало животных.</b> В группе ' + r.n + ' при норме ≥ ' + r.nMin + ' — интервал широкий, вердикт ненадёжен: ' + esc(r.nMinSource) + '.');
+    /* Аудит 183 (хвост): норма численности — в ОБЕИХ группах (классика WAAVP:
+     * ≥ 10 животных и в лечении, и в контроле); малый контроль не молчит. */
+    if (r.n < r.nMin || (r.control && r.control.n < r.nMin)) {
+      var head;
+      if (r.n < r.nMin && r.control && r.control.n < r.nMin) head = 'В группе лечения ' + r.n + ', в группе контроля ' + r.control.n;
+      else if (r.n < r.nMin) head = 'В группе ' + r.n;
+      else head = 'В группе контроля ' + r.control.n;
+      warns.push('<b>мало животных.</b> ' + head + ' при норме ≥ ' + r.nMin + ' — интервал широкий, вердикт ненадёжен: ' + esc(r.nMinSource) + '.');
     }
     /* Аудит 181-a №3: правила отбора из справки больше не молчат в калькуляторе. */
     if ($('species').value === 'horse' && pre.values.some(function (v) { return v < 25; })) {
@@ -608,7 +615,10 @@
     lines.push('n=' + r.n + ' · среднее до ' + fmtNum(r.meanPre) + '\u00A0EPG → после ' + fmtNum(r.meanPost) + '\u00A0EPG' + (r.control ? ' · контроль n=' + r.control.n + ' (' + fmtNum(r.control.meanPre) + '→' + fmtNum(r.control.meanPost) + ')' : ''));
     lines.push('Редукция: ' + fmtPct(r.point) + ' (' + ((r.ci.lo !== null) ? '90% ДИ ' + fmtNum(r.ci.lo) + '–' + fmtPct(r.ci.hi) : 'ДИ не определён') + ')');
     lines.push('Вердикт: ' + v.label.toUpperCase() + ' — ' + r.verdict.why);
-    if (r.n < r.nMin) lines.push('(!) животных меньше нормы: ' + r.n + ' из ≥ ' + r.nMin);
+    var nRep = [];
+    if (r.n < r.nMin) nRep.push('лечение — ' + r.n);
+    if (r.control && r.control.n < r.nMin) nRep.push('контроль — ' + r.control.n);
+    if (nRep.length) lines.push('(!) животных меньше нормы: ' + ((nRep.length === 1 && r.n < r.nMin) ? r.n : nRep.join(' · ')) + ' из ≥ ' + r.nMin);
     if (r.genus && r.genus.rows.length) {
       r.genus.rows.forEach(function (g) {
         lines.push('  ' + g.name + ': ' + fmtPct(g.fecr) + ' (' + ((g.ci && g.ci.lo !== null) ? fmtNum(g.ci.lo) + '–' + fmtPct(g.ci.hi) : '—') + ') — ' + VERDICT[g.verdict.code].label);
