@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Условия использования и дисклеймер — ФЭКРТ</title>
+<meta name="description" content="ФЭКРТ — полевой калькулятор скрининга резистентности к антигельминтикам: сервис «как есть», не ветеринарная консультация, не эталонный метод, вердикт — о стаде; считает в браузере, данные не покидают устройство.">
+<meta property="og:title" content="Условия использования и дисклеймер — ФЭКРТ">
+<meta property="og:description" content="Полевой скрининг «как есть», не эталонный метод и не ветеринарная консультация; вердикт — о стаде, не об отдельном животном.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://shray77.github.io/vetfecrt-site/terms.html">
+<meta name="twitter:card" content="summary">
+<link rel="canonical" href="https://shray77.github.io/vetfecrt-site/terms.html">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪱</text></svg>">
+<link rel="stylesheet" href="./vet-ds.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script>(function(){try{if(localStorage.getItem("vetds-theme")==="dark")document.documentElement.setAttribute("data-theme","dark")}catch(e){}})()</script>
+<style>
+    /* Ядро — vet-ds (./vet-ds.css). Ниже — характер витрины ФЭКРТ (фиолет
+       микроскопии, как на главной) + локальные алиасы: вёрстка читает токены
+       ДС, значения не дублируются. Каркас страницы — канон terms.html сестёр. */
+  :root {
+    --ds-accent: #6D4FC4; --ds-accent-strong: #5840A8; --ds-accent-ink: #F4F1FE;
+    --bg: var(--ds-bg); --surface: var(--ds-surface); --surface2: var(--ds-surface2);
+    --border: var(--ds-border); --text: var(--ds-text); --muted: var(--ds-muted);
+    --faint: var(--ds-faint); --accent: var(--ds-accent); --blue: var(--ds-blue);
+    --warn: var(--ds-amber); --err: var(--ds-red); --mono: var(--ds-font-mono);
+    --accent-dim: color-mix(in srgb, var(--accent) 12%, transparent);
+  }
+  [data-theme="dark"] { --ds-accent: #A78BFA; --ds-accent-strong: #C4B5FD; --ds-accent-ink: #1A1330; }
+  * { box-sizing: border-box; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  body { background: var(--bg); color: var(--text); font: 16px/1.65 var(--ds-font-sans); margin: 0; }
+  /* хаб «Визитка + RSS-сеть» — контейнер локальный, компонент из ядра */
+  .ds-hub { max-width: 860px; margin: 0 auto; padding: 12px 20px 0; }
+  header.top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  header.top { border-bottom: 1px solid var(--border); padding: 26px 0 22px; }
+  .theme-pill { min-height: 34px; padding: 0 13px; font: 500 12px var(--ds-font-mono, var(--mono, monospace)); }
+  .theme-pill svg { color: var(--accent); }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 0 20px; }
+  .brand { display: flex; align-items: center; gap: 16px; }
+  .logo { width: 52px; height: 52px; border-radius: var(--ds-radius); background: var(--accent-dim); border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); display: grid; place-items: center; flex: none; color: var(--accent); }
+  h1 { font-size: 23px; margin: 0; letter-spacing: -.02em; }
+  .brand p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+  .tldr { background: var(--accent-dim); border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); border-radius: var(--ds-radius); padding: 16px 20px; margin: 26px 0 8px; }
+  .tldr h2 { margin: 0 0 10px; font-size: 14px; text-transform: uppercase; letter-spacing: .08em; color: var(--accent); }
+  .tldr ul { margin: 0; padding-left: 20px; }
+  .tldr li { margin: 6px 0; font-size: 15px; }
+  article section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--ds-radius); padding: 18px 22px; margin: 14px 0; }
+  article h2 { font-size: 17px; margin: 0 0 10px; letter-spacing: -.01em; }
+  article p { margin: 8px 0; color: var(--muted); }
+  article p b, article li b { color: var(--text); }
+  article ul { margin: 8px 0; padding-left: 20px; color: var(--muted); }
+  article li { margin: 5px 0; }
+  a { color: var(--blue); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .upd { color: var(--faint); font: 12.5px var(--mono); margin-top: 18px; }
+  footer { border-top: 1px solid var(--border); margin-top: 36px; padding: 18px 0 30px; }
+  .foot { display: flex; gap: 18px; flex-wrap: wrap; font-size: 13px; color: var(--faint); }
+  .foot a { color: var(--muted); text-decoration: none; }
+  .foot a:hover { color: var(--accent); }
+  .foot .legal { color: var(--warn); }
+</style>
+</head>
+<body>
+<nav class="ds-hub" aria-label="Экосистема">
+  <a href="https://shray77.github.io/">Визитка</a>
+  <a href="https://shray77.github.io/vetdigest-site/">Дайджест науки</a>
+  <a href="https://shray77.github.io/vetrecall-site/">Отзывы и вспышки РФ</a>
+  <a href="https://shray77.github.io/biothreat-site/">Биоугрозы мира</a>
+  <a href="https://shray77.github.io/vet-heatmap/">ВетКарта</a>
+  <a href="https://shray77.github.io/vetflu-site/">Окна риска ВПГП</a>
+  <a href="https://shray77.github.io/rss-core-site/">Статус ядра</a>
+  <a href="https://shray77.github.io/vetfecrt-site/" class="on" aria-current="page">ФЭКРТ</a>
+</nav>
+<header class="top">
+  <div class="wrap">
+    <div class="brand">
+      <div class="logo"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 20h9"/><path d="M4 22h16"/><path d="M16.5 21a6 6 0 0 0 0-12h-1.4"/><path d="M9.5 14.5h2.4"/><path d="M9.5 12.5a2 2 0 0 1-2-2V5h6.4v5.5a2 2 0 0 1-2 2Z"/><path d="M12.4 5V2.5a1 1 0 0 0-1-1H9.9a1 1 0 0 0-1 1V5"/><path d="m6.2 9.5 1.3 1.3"/><path d="m13.8 3.2 1.5 1.5"/></svg></div>
+      <div>
+        <h1>Условия использования и дисклеймер</h1>
+        <p>ФЭКРТ — полевой калькулятор теста снижения числа яиц гельминтов</p>
+      </div>
+    </div>
+    <button class="ds-btn ds-btn--sm ds-theme-toggle ds-theme-toggle--labeled theme-pill" id="themeToggle" aria-label="Переключить тему" title="Переключить тему">
+        <svg class="ds-theme-toggle__sun" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4m11.4-11.4 1.4-1.4"/></svg>
+        <svg class="ds-theme-toggle__moon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+        <span class="ds-theme-toggle__label" aria-hidden="true"></span>
+      </button>
+  </div>
+</header>
+
+<main class="wrap">
+<article>
+  <div class="tldr">
+    <h2>Коротко</h2>
+    <ul>
+      <li>Сервис информационный, предоставляется <b>«как есть»</b>, без гарантий полноты, точности и доступности.</li>
+      <li>Это <b>не ветеринарная консультация</b>: принимайте решения только с ветеринарным врачом — даже если вы сами ветеринарный врач.</li>
+      <li>ФЭКРТ — <b>полевой скрининг, а не эталонный метод</b>: он измеряет снижение яйцекладки, а не гибель гельминтов; вердикт — <b>о стаде</b>, не об отдельном животном.</li>
+      <li>Автоматические расчёты — <b>для проверки гипотез</b>: перепроверяйте результаты по гайдлайну WAAVP-2023 и официальному инструменту fecrt.com.</li>
+    </ul>
+  </div>
+
+  <section id="about">
+    <h2>О сервисе</h2>
+    <p>ФЭКРТ — браузерный калькулятор теста снижения числа яиц гельминтов по гайдлайну WAAVP-2023: редукция счёта яиц с 90% доверительным интервалом (детерминированный бутстрэп) и вердиктом «резистентность / серая зона / восприимчив» по порогам вида × препарата. Все вычисления выполняются в браузере; сервис работает офлайн и не отправляет введённые данные.</p>
+    <p>Сервис разработан и поддерживается автором экосистемы VetInSilico самостоятельно, предоставляется бесплатно, носит информационный характер и не является ветеринарной организацией, лабораторией, диагностическим сервисом или официально зарегистрированным СМИ.</p>
+  </section>
+
+  <section id="advice">
+    <h2>Не ветеринарная консультация</h2>
+    <p>Результаты калькулятора <b>не являются</b> ветеринарной консультацией, диагнозом, назначением, схемой лечения или руководством к действию. Решения о здоровье, лечении и содержании животных принимает только ветеринарный врач, осмотревший животное, либо уполномоченный специалист уполномоченного учреждения.</p>
+    <p><b>Консультируйтесь с ветеринарным врачом, даже если вы сами ветеринарный врач.</b> Интерпретация ФЭКРТ требует учёта дизайна исследования, сезона, вида и препарата — данные справки витрины помогают, но не заменяют профессиональное суждение и лабораторию.</p>
+    <p><b>Любые автоматические расчёты, интервалы и вердикты</b> предоставлены исключительно для ознакомления и проверки гипотез. Ошибка возможна и без ИИ — из-за опечатки во вводе, формулы, порога или данных. Перепроверяйте результаты вручную по гайдлайну и официальным инструкциям к препаратам перед любым клиническим применением.</p>
+  </section>
+
+  <section id="method">
+    <h2>Метод и пороги</h2>
+    <p>Вердикт выносится по положению 90% доверительного интервала относительно двух порогов (ожидаемая эффективность и минимум) по схеме двух односторонних тестов; пороги взяты из открытых протоколов: для лошадей — NOAH, для мелких жвачных — классика WAAVP и операционализация-2024, для КРС — адаптация классики с овец <b>без валидации против убойных исследований</b>.</p>
+    <p>Калькулятор упрощает гайдлайн до полевого уровня: научным исследованиям и спорным случаям полагается сверяться с <a href="https://pubmed.ncbi.nlm.nih.gov/37121092/">первоисточником</a> и официальным инструментом <a href="https://www.fecrt.com/">fecrt.com</a>. Известные ограничения метода (подавление яйцекладки макроциклическими лактонами, сезонность, чувствительность к дизайну) описаны в справке витрины.</p>
+  </section>
+
+  <section id="not-official">
+    <h2>Не для официальных решений</h2>
+    <p>Сервис — не система диагностики, не реестр и не официальный источник информации. Его данные <b>не могут</b> служить основанием для административных, регуляторных, судебных или хозяйственных решений, для официальной отчётности, оформления заключений или вместо процедур, предусмотренных законодательством.</p>
+  </section>
+
+  <section id="as-is">
+    <h2>«Как есть» и ограничение ответственности</h2>
+    <p>Сервис предоставляется <b>«как есть»</b> («as is») и «как доступно». Автор не предоставляет никаких явных или подразумеваемых гарантий, включая гарантии товарной пригодности, соответствия конкретной цели, точности, полноты и бесперебойной работы. Доступ к сервису может быть приостановлен или прекращён в любой момент без предупреждения.</p>
+    <p>Автор не несёт ответственности за любые прямые или косвенные убытки, упущенную выгоду, а также вред животным, людям или имуществу, возникшие в результате использования или неиспользования данных сервиса — в максимальной степени, допускаемой применимым правом.</p>
+  </section>
+
+  <section id="privacy">
+    <h2>Приватность</h2>
+    <p>Сайт статичен: он не собирает персональные данные, не требует регистрации и не использует трекинг-куки. Все расчёты выполняются локально в браузере — введённые счёты не покидают ваше устройство. Для настроек интерфейса (тема) может использоваться localStorage вашего браузера; эти настройки не покидают устройство. При открытии страниц хостинг-провайдер (GitHub Pages) может вести стандартные технические журналы; его политика конфиденциальности применяется отдельно.</p>
+  </section>
+
+  <section id="third">
+    <h2>Ссылки на третьи стороны</h2>
+    <p>Сервис содержит ссылки на внешние ресурсы (библиотеки, гайдлайны, инструменты), за содержание которых автор ответственности не несёт. Все упомянутые товарные знаки, названия организаций и препаратов принадлежат их правообладателям; упоминания носят исключительно информационный характер и не означают связи, одобрения или партнёрства.</p>
+  </section>
+
+  <section id="changes">
+    <h2>Изменение условий</h2>
+    <p>Настоящие условия могут быть изменены в любой момент без предварительного уведомления; актуальная версия всегда доступна на этой странице. Продолжение использования сервиса после обновления страницы означает согласие с новыми условиями.</p>
+  </section>
+
+  <section id="contact">
+    <h2>Связь</h2>
+    <p>Замечания об ошибках, неточностях и вопросы по условиям — через GitHub Issues: <a href="https://github.com/shray77/vetfecrt-site/issues">github.com/shray77/vetfecrt-site</a>.</p>
+  </section>
+</article>
+<p class="upd">Версия от 27.10.2026 (ред. 1) · VetInSilico</p>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <span class="legal">полевой скрининг · не эталонный метод · <a href="./terms.html">условия и дисклеймер</a></span>
+    <span>v1.0 · методика WAAVP-2023 · 90% ДИ — детерминированный бутстрэп · <a href="./">к калькулятору</a></span>
+    <a href="https://github.com/shray77/vetfecrt-site">репозиторий</a>
+  </div>
+</footer>
+<script>
+(function(){
+  var root = document.documentElement, key = "vetds-theme";
+  var btn = document.getElementById("themeToggle");
+  if (btn) btn.addEventListener("click", function(){
+    var dark = root.getAttribute("data-theme") === "dark";
+    if (dark) root.removeAttribute("data-theme"); else root.setAttribute("data-theme", "dark");
+    try { localStorage.setItem(key, dark ? "" : "dark"); } catch (e) {}
+    root.dispatchEvent(new CustomEvent("vetds-theme", { detail: dark ? "" : "dark" }));
+  });
+})();
+</script>
+</body>
+</html>

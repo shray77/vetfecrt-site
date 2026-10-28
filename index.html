@@ -66,7 +66,9 @@
   .sub { color: var(--muted); font-size: 13.5px; margin: 0 0 14px; }
 
   /* -- калькулятор: формуляр ------------------------------------------------ */
-  .fx-form { display: grid; gap: 14px; }
+  .fx-form { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  /* Аудит 183-k С-1: minmax(0, 1fr) — таблица родов в #result не растягивает
+     auto-трек формы за край экрана (мобильный скролл 55–60px в genus-режиме). */
   /* select врождённо шире самого длинного option — грид-колонка не имеет права
      сжаться ниже него без min-width:0 (грабля мобильной ширины) */
   .fx-row .ds-field, .fx-nums .ds-field, .fx-genus-row .ds-field { min-width: 0; }
@@ -212,7 +214,7 @@
             <option value="cattle">Крупный рогатый скот</option>
             <option value="horse">Лошади</option>
           </select>
-          <span class="hint" id="nmin-hint">норма: ≥ 10 животных в группе</span>
+          <span class="hint" id="nmin-hint">норма — ≥ 10 животных в группе</span>
         </div>
         <div class="ds-field">
           <label class="ds-label" for="drug">ГРУППА ПРЕПАРАТА</label>
@@ -257,23 +259,23 @@
         <div class="fx-genus-grid" id="genus-grid">
           <div class="fx-genus-row">
             <div class="ds-field"><label class="ds-label" for="g-name-0">РОД 1</label><input class="ds-input" id="g-name-0" value="Хемонхус" spellcheck="false"></div>
-            <div class="ds-field"><label class="ds-label" for="g-pre-0">ДОЛЕЙ ДО, %</label><input class="ds-input" id="g-pre-0" inputmode="numeric" value="0"></div>
-            <div class="ds-field"><label class="ds-label" for="g-post-0">ДОЛЕЙ ПОСЛЕ, %</label><input class="ds-input" id="g-post-0" inputmode="numeric" value="0"></div>
+            <div class="ds-field"><label class="ds-label" for="g-pre-0">ДОЛЕЙ ДО, %</label><input class="ds-input" id="g-pre-0" inputmode="decimal" value="0"></div>
+            <div class="ds-field"><label class="ds-label" for="g-post-0">ДОЛЕЙ ПОСЛЕ, %</label><input class="ds-input" id="g-post-0" inputmode="decimal" value="0"></div>
           </div>
           <div class="fx-genus-row">
             <div class="ds-field"><label class="ds-label" for="g-name-1">РОД 2</label><input class="ds-input" id="g-name-1" value="Теладорсагия" spellcheck="false"></div>
-            <div class="ds-field"><label class="ds-label" for="g-pre-1">ДОЛЕЙ ДО, %</label><input class="ds-input" id="g-pre-1" inputmode="numeric" value="0"></div>
-            <div class="ds-field"><label class="ds-label" for="g-post-1">ДОЛЕЙ ПОСЛЕ, %</label><input class="ds-input" id="g-post-1" inputmode="numeric" value="0"></div>
+            <div class="ds-field"><label class="ds-label" for="g-pre-1">ДОЛЕЙ ДО, %</label><input class="ds-input" id="g-pre-1" inputmode="decimal" value="0"></div>
+            <div class="ds-field"><label class="ds-label" for="g-post-1">ДОЛЕЙ ПОСЛЕ, %</label><input class="ds-input" id="g-post-1" inputmode="decimal" value="0"></div>
           </div>
           <div class="fx-genus-row">
             <div class="ds-field"><label class="ds-label" for="g-name-2">РОД 3</label><input class="ds-input" id="g-name-2" value="Трихостронгилюс" spellcheck="false"></div>
-            <div class="ds-field"><label class="ds-label" for="g-pre-2">ДОЛЕЙ ДО, %</label><input class="ds-input" id="g-pre-2" inputmode="numeric" value="0"></div>
-            <div class="ds-field"><label class="ds-label" for="g-post-2">ДОЛЕЙ ПОСЛЕ, %</label><input class="ds-input" id="g-post-2" inputmode="numeric" value="0"></div>
+            <div class="ds-field"><label class="ds-label" for="g-pre-2">ДОЛЕЙ ДО, %</label><input class="ds-input" id="g-pre-2" inputmode="decimal" value="0"></div>
+            <div class="ds-field"><label class="ds-label" for="g-post-2">ДОЛЕЙ ПОСЛЕ, %</label><input class="ds-input" id="g-post-2" inputmode="decimal" value="0"></div>
           </div>
           <div class="fx-genus-row">
             <div class="ds-field"><label class="ds-label" for="g-name-3">РОД 4</label><input class="ds-input" id="g-name-3" value="Прочие стронгиляты" spellcheck="false"></div>
-            <div class="ds-field"><label class="ds-label" for="g-pre-3">ДОЛЕЙ ДО, %</label><input class="ds-input" id="g-pre-3" inputmode="numeric" value="0"></div>
-            <div class="ds-field"><label class="ds-label" for="g-post-3">ДОЛЕЙ ПОСЛЕ, %</label><input class="ds-input" id="g-post-3" inputmode="numeric" value="0"></div>
+            <div class="ds-field"><label class="ds-label" for="g-pre-3">ДОЛЕЙ ДО, %</label><input class="ds-input" id="g-pre-3" inputmode="decimal" value="0"></div>
+            <div class="ds-field"><label class="ds-label" for="g-post-3">ДОЛЕЙ ПОСЛЕ, %</label><input class="ds-input" id="g-post-3" inputmode="decimal" value="0"></div>
           </div>
         </div>
         <p class="fx-genus-sum" id="genus-sum">доли до: 0% · доли после: 0%</p>
@@ -334,7 +336,7 @@
       </div>
 
       <h2>Род-специфичный подсчёт</h2>
-      <p>У мелких жвачных яйца стронгилят родов неотличимы морфологически. Обновление методики-2024: эффективность считают отдельно по родам — доли родов определяют культурой личинок L3 (инкубация 7 суток при 26 °C, идентификация первых 50 личинок на пул), а счёт рода = доля × общий счёт пробы.<span class="ds-fn" title="Род-специфичный ФЭКРТ, обновление 2024">8</span> Калькулятор делает этот пересчёт в блоке «род-специфичный подсчёт»: введите доли культуры до и после — получите отдельные FECR и вердикты по каждому роду. Резистентность может жить в одном роде (чаще Хемонхус) при благополучном среднем по стаду.</p>
+      <p>У мелких жвачных яйца стронгилят родов неотличимы морфологически. Обновление методики-2024: эффективность считают отдельно по родам — доли родов определяют культурой личинок L3 (инкубация 7 суток при 26&nbsp;°C, идентификация первых 50 личинок на пул), а счёт рода = доля × общий счёт пробы.<span class="ds-fn" title="Род-специфичный ФЭКРТ, обновление 2024">8</span> Калькулятор делает этот пересчёт в блоке «род-специфичный подсчёт»: введите доли культуры до и после — получите отдельные FECR и вердикты по каждому роду. Резистентность может жить в одном роде (чаще Хемонхус) при благополучном среднем по стаду.</p>
 
       <h2>Честные ограничения</h2>
       <blockquote class="ds-pullquote">ФЭКРТ — полевой скрининг, а не эталонный метод: он измеряет снижение яйцекладки, а не гибель гельминтов.<cite>— сводка ограничений метода по литературе</cite></blockquote>
@@ -353,7 +355,7 @@
 
 <footer class="ds-footer ds-footer--meta">
   <div class="wrap">
-    <span class="legal">полевой скрининг · не эталонный метод · не заменяет заключение паразитолога и лабораторию · вердикт — о стаде, не об животном</span>
+    <span class="legal">полевой скрининг · не эталонный метод · не заменяет заключение паразитолога и лабораторию · вердикт — о стаде, не об животном · <a href="./terms.html">условия и дисклеймер</a></span>
     <span>v1.0 · методика WAAVP-2023 · 90% ДИ — детерминированный бутстрэп · арифметика гейтится известными ответами (node --test)</span>
     <span>источники: <a href="https://pubmed.ncbi.nlm.nih.gov/37121092/">гайдлайн WAAVP-2023</a> · <a href="https://www.fecrt.com/">fecrt.com</a> · <a href="https://noah.co.uk/equines/fecrt-testing">NOAH: кони</a> · ядро — <a href="https://github.com/shray77/vet-ds">vet-ds</a> · <a href="https://github.com/shray77/vetfecrt-site">репозиторий</a></span>
   </div>
@@ -406,7 +408,9 @@
       sel.appendChild(o);
     });
     if (sp.drugs[cur]) sel.value = cur;
-    $('nmin-hint').textContent = 'норма: ' + sp.nMinSource;
+    /* Аудит 183-k №2: «норма: » + nMinSource со своим двоеточием слипались
+     («норма: NOAH: ≥ 6 лошадей») — тире вместо префиксного двоеточия. */
+    $('nmin-hint').textContent = 'норма — ' + sp.nMinSource;
     $('interval-hint').textContent = 'проба после лечения: ' + sp.intervalDays;
     /* Аудит 181-a №8: у лошадей блок культуры L3 не применим (роды различимы
      * в камере) — прятать, а не молча игнорировать заполненные доли. */
@@ -554,7 +558,7 @@
     /* Аудит 181-a №12: диапазон — тире, как в копируемом отчёте, а не многоточие */
     var ciTxt = (r.ci.lo === null || r.ci.hi === null)
       ? 'ДИ не определён — данных мало'
-      : '90% ДИ: ' + fmtPct(r.ci.lo) + '–' + fmtPct(r.ci.hi);
+      : '90% ДИ: ' + fmtNum(r.ci.lo) + '–' + fmtPct(r.ci.hi);
 
     var h = '';
     h += '<div class="ds-card">';
@@ -578,7 +582,7 @@
       h += '<div class="tbl-scroll"><table class="fx-genus-tbl"><caption>роды — пересчёт по культуре L3</caption><thead><tr><th>род</th><th>доля до → после</th><th>FECR</th><th>90% ДИ</th><th>вердикт</th></tr></thead><tbody>';
       r.genus.rows.forEach(function (g) {
         var gv = VERDICT[g.verdict.code];
-        var gci = (g.ci && g.ci.lo !== null) ? fmtPct(g.ci.lo) + '–' + fmtPct(g.ci.hi) : '—';
+        var gci = (g.ci && g.ci.lo !== null) ? fmtNum(g.ci.lo) + '–' + fmtPct(g.ci.hi) : '—';
         h += '<tr><td><b>' + esc(g.name) + '</b></td><td>' + fmtNum(g.sharePre) + '% → ' + fmtNum(g.sharePost) + '%</td>'
            + '<td><b>' + fmtPct(g.fecr) + '</b></td><td>' + gci + '</td><td><span class="' + gv.cls + '">' + gv.label + '</span></td></tr>';
       });
@@ -602,12 +606,12 @@
     var lines = [];
     lines.push('ФЭКРТ — ' + r.species + ', ' + r.drug);
     lines.push('n=' + r.n + ' · среднее до ' + fmtNum(r.meanPre) + '\u00A0EPG → после ' + fmtNum(r.meanPost) + '\u00A0EPG' + (r.control ? ' · контроль n=' + r.control.n + ' (' + fmtNum(r.control.meanPre) + '→' + fmtNum(r.control.meanPost) + ')' : ''));
-    lines.push('Редукция: ' + fmtPct(r.point) + ' (' + ((r.ci.lo !== null) ? '90% ДИ ' + fmtPct(r.ci.lo) + '–' + fmtPct(r.ci.hi) : 'ДИ не определён') + ')');
+    lines.push('Редукция: ' + fmtPct(r.point) + ' (' + ((r.ci.lo !== null) ? '90% ДИ ' + fmtNum(r.ci.lo) + '–' + fmtPct(r.ci.hi) : 'ДИ не определён') + ')');
     lines.push('Вердикт: ' + v.label.toUpperCase() + ' — ' + r.verdict.why);
     if (r.n < r.nMin) lines.push('(!) животных меньше нормы: ' + r.n + ' из ≥ ' + r.nMin);
     if (r.genus && r.genus.rows.length) {
       r.genus.rows.forEach(function (g) {
-        lines.push('  ' + g.name + ': ' + fmtPct(g.fecr) + ' (' + ((g.ci && g.ci.lo !== null) ? fmtPct(g.ci.lo) + '–' + fmtPct(g.ci.hi) : '—') + ') — ' + VERDICT[g.verdict.code].label);
+        lines.push('  ' + g.name + ': ' + fmtPct(g.fecr) + ' (' + ((g.ci && g.ci.lo !== null) ? fmtNum(g.ci.lo) + '–' + fmtPct(g.ci.hi) : '—') + ') — ' + VERDICT[g.verdict.code].label);
       });
     }
     lines.push('Полевой скрининг WAAVP-2023, не эталонный метод · https://shray77.github.io/vetfecrt-site/');
