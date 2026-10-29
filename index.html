@@ -74,10 +74,13 @@
   .fx-row .ds-field, .fx-nums .ds-field, .fx-genus-row .ds-field { min-width: 0; }
   .fx-form select, .fx-form input, .fx-form textarea { min-width: 0; max-width: 100%; }
   .fx-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  .fx-row .ds-field .hint { font: 11.5px var(--mono); color: var(--faint); }
-  .fx-nums { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  /* Task 195: подпись-«хинт» под полем — общий паттерн (строка селектов и блок счётов) */
+  .fx-row .ds-field .hint, .fx-nums .ds-field .hint { font: 11.5px var(--mono); color: var(--faint); }
+  .fx-nums { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
   @media (max-width: 720px) { .fx-row, .fx-nums { grid-template-columns: 1fr; } }
-  .fx-nums textarea { min-height: 96px; }
+  /* Task 195: «плывущие» блоки ввода — высота приведена к 3 строкам
+     (пальце-таргет сохранён), однострочные подписи выравнивают пары полей */
+  .fx-nums textarea { min-height: 72px; }
 
   .fx-design { display: flex; gap: 10px; flex-wrap: wrap; }
   .fx-design label.radio {
@@ -128,6 +131,14 @@
   /* Аудит 181-a №13: подпись-сноска таблицы родов (периодика: caption снизу) */
   table.fx-genus-tbl caption { caption-side: bottom; text-align: left; font-size: 10.5px; color: var(--faint); padding-top: 8px; }
 
+  /* Task 195: методология — свёрнутый блок «по желанию» (паттерн fx-genus) */
+  details.fx-method { border: 1px dashed var(--ds-border-strong); border-radius: var(--ds-radius); padding: 0 14px; }
+  details.fx-method > summary { cursor: pointer; font: 600 12.5px var(--mono); color: var(--muted); letter-spacing: .02em; padding: 10px 0; list-style: none; display: flex; align-items: center; gap: 8px; }
+  details.fx-method > summary::-webkit-details-marker { display: none; }
+  details.fx-method > summary::before { content: "▸"; color: var(--accent); flex: none; transition: transform .15s ease; }
+  details.fx-method[open] > summary { border-bottom: 1px dashed var(--border); margin-bottom: 12px; }
+  details.fx-method[open] > summary::before { transform: rotate(90deg); }
+
   /* -- справка: голос периодики ---------------------------------------------- */
   article.doc { background: var(--surface); border: 1px solid var(--border); border-radius: var(--ds-radius); padding: var(--ds-space-4) var(--ds-space-5); margin: 16px 0; }
   article.doc p { margin: 8px 0; color: var(--muted); }
@@ -154,11 +165,38 @@
   footer { border-top: 1px solid var(--border); margin-top: var(--ds-space-7); padding: var(--ds-space-5) 0 var(--ds-space-4); }
 
   /* -- печать: бланк результата (HIG §8) ------------------------------------- */
+  /* Task 195: бланк обязан влезать в ОДИН лист — было два: мастхед-разлёт,
+     96px-поля и просторные статы расползались. Теперь: компакт-шапка,
+     поля 44px, статы впритык, подвал — только строка дисклеймера. */
   @media print {
-    .ds-hub, .fx-actions, .theme-pill, .fx-design, details.fx-genus summary { display: none !important; }
+    .ds-hub, .fx-actions, .theme-pill, .fx-design, .sub, .hint,
+    .ds-masthead__sub, .ds-masthead__side, .ds-masthead-meta, .ds-rule-double { display: none !important; }
     #method { display: none; }
-    .fx-nums textarea { border: none; }
-    body { font-size: 13px; }
+    .fx-nums textarea { border: none; min-height: 0; height: 44px; }
+    body { font-size: 11.5px; }
+    .ds-masthead { padding: 4px 0 6px; }
+    .ds-masthead__logo svg { width: 18px; height: 18px; }
+    .ds-masthead__title { font-size: 15px; }
+    section.fx { margin: 8px 0 4px; }
+    section.fx > h2 { font-size: 15px; }
+    .fx-form { gap: 8px; }
+    .fx-nums { gap: 10px; }
+    details.fx-genus:not([open]) { display: none; }
+    .ds-card { padding: 8px 10px; }
+    .fx-big { font-size: 26px; }
+    .fx-verdict { margin-bottom: 6px; gap: 8px; }
+    .fx-stats { margin: 6px 0; gap: 6px; }
+    .fx-stat { padding: 4px 6px; font-size: 10.5px; }
+    .fx-stat b { font-size: 12px; margin-top: 0; }
+    .fx-warn, .fx-err { padding: 6px 8px; font-size: 11px; margin: 6px 0; }
+    .fx-why { font-size: 11px; }
+    .fx-thrline { font-size: 10px; margin-top: 6px; }
+    table.fx-genus-tbl { font-size: 10.5px; margin: 6px 0 2px; }
+    table.fx-genus-tbl th { font-size: 9px; padding: 3px 6px; }
+    table.fx-genus-tbl td { padding: 4px 6px; }
+    footer { margin-top: 8px; padding: 6px 0 0; }
+    .ds-footer--meta .wrap span:not(.legal) { display: none; }
+    footer .legal { font-size: 9.5px; }
   }
 </style>
 </head>
@@ -169,9 +207,14 @@
   <a href="https://shray77.github.io/biothreat-site/">Биоугрозы мира</a>
   <a href="https://shray77.github.io/vet-heatmap/">ВетКарта</a>
   <a href="https://shray77.github.io/vetflu-site/">Окна риска ВПГП</a>
+  <a href="https://shray77.github.io/vet-meteo/">ВетМетео</a>
   <a href="https://shray77.github.io/rss-core-site/">Статус ядра</a>
   <a href="https://shray77.github.io/vetfecrt-site/" class="on" aria-current="page">ФЭКРТ</a>
+  <a href="https://shray77.github.io/vettools/">ВетТулс</a>
+  <a href="https://shray77.github.io/vet-hub/">ВетХаб</a>
 </nav>
+<script>/* Task 195: активная пилюля — в кадре (хаб на телефоне одним рядом) */
+(function(){var a=document.querySelector('.ds-hub a.on');if(a)a.scrollIntoView({block:'nearest',inline:'center'});})();</script>
 
 <header class="ds-masthead">
   <div class="wrap">
@@ -201,7 +244,6 @@
 
   <!-- ======================= ЛИСТ РАСЧЁТА (голос B «Формуляр») ============ -->
   <section class="fx" id="calc" data-theme="form">
-    <p class="ds-overline">раздел «действуешь» · голос B</p>
     <h2>Лист расчёта</h2>
     <p class="sub">Введите счёты яиц (EPG) каждой пробы — целыми числами через запятую, пробел или с новой строки (точка — не дробь: счёты яиц не дробят). Пересчёт живой: поменяйте число — вердикт пересчитается. Одинаковый ввод всегда даёт одинаковый интервал.</p>
 
@@ -233,23 +275,27 @@
 
       <div class="fx-nums">
         <div class="ds-field">
-          <label class="ds-label" for="pre">СЧЁТЫ ДО ЛЕЧЕНИЯ, EPG — ПО ОДНОМУ ЧИСЛУ НА ПРОБУ</label>
-          <textarea class="ds-textarea" id="pre" rows="4" placeholder="500, 400, 600, 300 …" spellcheck="false"></textarea>
+          <label class="ds-label" for="pre">СЧЁТЫ ДО ЛЕЧЕНИЯ · EPG</label>
+          <textarea class="ds-textarea" id="pre" rows="3" placeholder="500, 400, 600, 300 …" spellcheck="false"></textarea>
+          <span class="hint">по одному числу на пробу · запятая, пробел или с новой строки</span>
         </div>
         <div class="ds-field">
-          <label class="ds-label" for="post">СЧЁТЫ ПОСЛЕ ЛЕЧЕНИЯ, EPG — ТЕ ЖЕ ЖИВОТНЫЕ, ТОТ ЖЕ ПОРЯДОК</label>
-          <textarea class="ds-textarea" id="post" rows="4" placeholder="50, 0, 100, 50 …" spellcheck="false"></textarea>
+          <label class="ds-label" for="post">СЧЁТЫ ПОСЛЕ ЛЕЧЕНИЯ · EPG</label>
+          <textarea class="ds-textarea" id="post" rows="3" placeholder="50, 0, 100, 50 …" spellcheck="false"></textarea>
+          <span class="hint">те же животные, тот же порядок</span>
         </div>
       </div>
 
       <div class="fx-nums" id="control-block" hidden>
         <div class="ds-field">
-          <label class="ds-label" for="cpre">КОНТРОЛЬ ДО, EPG — НЕ ОБРАБОТАННЫЕ</label>
-          <textarea class="ds-textarea" id="cpre" rows="4" placeholder="600, 500, 700, 400 …" spellcheck="false"></textarea>
+          <label class="ds-label" for="cpre">КОНТРОЛЬ ДО · EPG</label>
+          <textarea class="ds-textarea" id="cpre" rows="3" placeholder="600, 500, 700, 400 …" spellcheck="false"></textarea>
+          <span class="hint">не обработанные животные</span>
         </div>
         <div class="ds-field">
-          <label class="ds-label" for="cpost">КОНТРОЛЬ ПОСЛЕ, EPG — ТЕ ЖЕ ЖИВОТНЫЕ</label>
-          <textarea class="ds-textarea" id="cpost" rows="4" placeholder="550, 480, 690, 420 …" spellcheck="false"></textarea>
+          <label class="ds-label" for="cpost">КОНТРОЛЬ ПОСЛЕ · EPG</label>
+          <textarea class="ds-textarea" id="cpost" rows="3" placeholder="550, 480, 690, 420 …" spellcheck="false"></textarea>
+          <span class="hint">те же животные</span>
         </div>
       </div>
 
@@ -287,10 +333,11 @@
 
   <!-- ======================= МЕТОДОЛОГИЯ (голос A «Периодика») ============ -->
   <section class="fx" id="method">
-    <p class="ds-overline ds-overline--rule">раздел «думаешь» · голос A</p>
     <h2>Методология и пороги</h2>
+    <details class="fx-method">
+      <summary>подробнее: как считается и не считается — формулы, пороги WAAVP-2023, интервалы проб, ограничения метода</summary>
 
-    <article class="doc">
+      <article class="doc">
       <p class="ds-lede"><span class="ds-dropcap">Ф</span>ЭКРТ — faecal egg count reduction test — метод полевой оценки эффективности антигельминтиков и скрининга резистентности: считают яйца гельминтов в грамме фекалий до и после лечения, снижение счёта — оценка эффективности препарата на стаде.<span class="ds-fn" title="WAAVP-гайдлайн, Kaplan et al. 2023">1</span> Калькулятор переносит в браузер арифметику нового гайдлайна W.A.A.V.P.: парный дизайн, 90% доверительный интервал и пороги, согласованные по виду, препарату и паразиту.</p>
 
       <h2>Как считается</h2>
@@ -349,7 +396,8 @@
       </ul>
 
       <p class="ds-fnotes">1 Kaplan R., Denwood M., Nielsen M. и др. W.A.A.V.P. guideline for the faecal egg count reduction test (FECRT). Vet Parasitol 2023; 318: 109936.<br>2 Denwood M. et al. A statistical framework for calculating prospective sample sizes and classifying efficacy results for FECRT. Vet Parasitol 2023; 314: 109867; официальный инструмент — fecrt.com.<br>3 NOAH. FECRT Testing in Horses — пороги, n ≥ 6, порог обнаружения &lt; 25 EPG, интервалы.<br>4 Coles G. et al. WAAVP methods for the detection of anthelmintic resistance in nematodes of veterinary importance. Vet Parasitol 1992 (классические пороги 95/90).<br>5 Maurizio A. et al. BMC Vet Res 2024 — операционализация WAAVP-2023 у коз: 90% ДИ, expected 95% / minimum 90%, род-специфичный подсчёт.<br>6 O'Shaughnessy J. et al. Ivermectin treatment failure on four Irish dairy farms. Ir Vet J 2019 — FECR &lt; 95% при нижней границе ДИ &lt; 90% на КРС.<br>7 Протоколы мелких жвачных COMBAR/Ceva: интервалы проб по молекуле.<br>8 Род-специфичный ФЭКРТ мелких жвачных, обновление 2024 (PubMed 38382381).<br>9 Nanjiani I. et al. Measuring anthelmintic efficacy in cattle: what do FECRTs actually tell us? Cattle Practice 2015.</p>
-    </article>
+      </article>
+    </details>
   </section>
 </main>
 
