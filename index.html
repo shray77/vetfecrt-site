@@ -695,7 +695,7 @@
   }
   function toast(msg) {
     var t = document.createElement('div');
-    t.className = 'ds-toast';
+    t.className = 'ds-toast show';   /* v2.5 (M4): видимость через .show — контракт ядра */
     t.setAttribute('role', 'status');
     t.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:24px;z-index:99;';
     t.textContent = msg;
