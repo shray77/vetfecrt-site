@@ -35,6 +35,17 @@
      и в формулярном контексте (тёмная оболочка не должна приносить светлый
      акцент на бежевую бумагу) */
   [data-theme="form"] { --ds-accent: #6D4FC4; --ds-accent-strong: #5840A8; --ds-accent-ink: #F4F1FE; }
+  /* QA Task 223 (Б1): алиасы :root вычисляются на <html> — в тёмной оболочке
+     они несут тёмные значения В светлую бумагу формуляра (числа статов
+     1.21:1, предупреждения 1.01:1 — тексты невидимы). Пере-анкеруем все
+     алиасы на формулярные --ds-токены (пиннинг vet-ds §25): внутри секции
+     они светлые в любой теме, контраст ≥ 4.5:1 в обеих темах. */
+  section.fx[data-theme="form"] {
+    --bg: var(--ds-bg); --surface: var(--ds-surface); --surface2: var(--ds-surface2);
+    --border: var(--ds-border); --text: var(--ds-text); --muted: var(--ds-muted); --faint: var(--ds-faint);
+    --accent: var(--ds-accent); --red: var(--ds-red); --orange: var(--ds-orange); --amber: var(--ds-amber);
+    --green: var(--ds-green); --blue: var(--ds-blue); --violet: var(--ds-violet);
+  }
   * { box-sizing: border-box; }
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   body { background: var(--bg); color: var(--text); font: 16px/1.6 var(--ds-font-sans); margin: 0; }
@@ -82,6 +93,18 @@
      (пальце-таргет сохранён), однострочные подписи выравнивают пары полей */
   .fx-nums textarea { min-height: 72px; }
 
+  /* QA Task 223 (Б3): фокус полей формуляра был почти невидим — правило ядра
+     [data-theme="form"] .ds-select:focus (outline:none, 0-3-0) гасило общий
+     :focus-visible (0-2-0): индикатор — утолщение нижней линии на 1px.
+     Возвращаем кольцо контраста с ID-специфичностью (подчёркивание ядра
+     остаётся второй индикацией — как у кнопок/радио ядра). */
+  #calc .ds-select:focus-visible,
+  #calc .ds-textarea:focus-visible,
+  #calc .ds-input:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
   .fx-design { display: flex; gap: 10px; flex-wrap: wrap; }
   .fx-design label.radio {
     display: inline-flex; align-items: baseline; gap: 8px; cursor: pointer;
@@ -116,6 +139,10 @@
   .fx-err { border: 1px solid color-mix(in srgb, var(--red) 40%, transparent); background: color-mix(in srgb, var(--red) 8%, transparent);
     border-radius: var(--ds-radius-s); padding: 10px 12px; font-size: 13px; margin: 10px 0; }
   .fx-err b { color: var(--red); }
+  /* QA Task 223 (Б2): 200-буквенный токен в поле рвал страницу на 394px
+     (scrollWidth 1487 при clientWidth 906) — длинный мусор переносится
+     внутри карточки (паттерн article.doc code). */
+  .fx-err, .fx-warn, .fx-empty { overflow-wrap: anywhere; }
   /* Аудит 181-a №4: до первого ввода — нейтральная подсказка (пунктир формуляра),
    * красная рамка — только за реальный мусор. */
   .fx-empty { border: 1px dashed var(--ds-border-strong); border-radius: var(--ds-radius-s);
@@ -161,6 +188,24 @@
   table.spec .num em { font-style: normal; color: var(--accent); }
   a { color: var(--blue); text-decoration: none; }
   a:hover { text-decoration: underline; }
+  /* QA Task 223 (З4): на таче hover нет — ссылки в прозе и подвале были
+     различимы только цветом (WCAG 1.4.1); подчёркивание постоянно.
+     Хаб/мастхед — навигационный хром, не трогаем. */
+  article.doc a, .ds-footer--meta a { text-decoration: underline; }
+
+  /* QA Task 223 (П2): строки методологии 108 знаков, инструкция калькулятора
+     135 — норма 45–90; ограничиваем колонку прозы (таблицы и формулы —
+     блочные, переживают; в печати методология скрыта). */
+  article.doc p, #calc .sub { max-width: 68ch; }
+
+  /* QA Task 223 (П3): тач-таргеты на мобиле — пилюли хаба ~32px и ссылки
+     футера ~14px при ориентире 44×44; legal-ссылка — юридически значимая.
+     Пилюли — вертикальный паддинг поверх ядра, ссылки футера —
+     inline-block с паддингом (QA-рецепт). */
+  @media (max-width: 720px) {
+    .ds-hub a { padding-block: 10px; }
+    .ds-footer--meta a { display: inline-block; padding: 6px 0; }
+  }
 
   footer { border-top: 1px solid var(--border); margin-top: var(--ds-space-7); padding: var(--ds-space-5) 0 var(--ds-space-4); }
 
@@ -348,10 +393,10 @@
       <p>Доверительный интервал — 90%, а не привычные 95%, потому что вердикт складывается из двух односторонних тестов по 5% каждый (тест неуступости для «восприимчив» и тест уступчивости для «резистентность»); суммарная ошибка I рода остаётся 5%.<span class="ds-fn" title="Denwood et al. 2023 — статистический каркас гайдлайна">2</span> Здесь ДИ считается перцентильным бутстрэпом (10 000 реплик перевыборки пар) с фиксированным зерном генератора: одинаковый ввод всегда даёт одинаковый интервал — арифметику можно проверить.</p>
 
       <h2>Пороги интерпретации</h2>
-      <p>Вердикт выносится по положению всего 90% ДИ относительно двух порогов: <b>ожидаемой эффективности E</b> (вся 90% ДИ ≥ E — «восприимчив») и <b>минимума M</b> (вся 90% ДИ &lt; M — «резистентность»); между — серая зона.</p>
+      <p>Вердикт выносится по границам 90% ДИ относительно двух порогов — правила гайдлайна (разд.&nbsp;2.6): <b>«восприимчив»</b> — нижняя граница ≥ <b>минимума M</b> и верхняя ≥ <b>ожидаемой эффективности E</b>; <b>«резистентность»</b> — верхняя граница &lt; E; иначе — <b>серая зона</b> (верх ≥ E, низ &lt; M — данными нельзя ни подтвердить, ни отвергнуть эффективность).</p>
       <div class="tbl-scroll">
       <table class="spec">
-        <thead><tr><th>Вид · паразит</th><th>Группа препарата</th><th>Восприимчив ≥</th><th>Резистентность &lt;</th><th>Источник</th></tr></thead>
+        <thead><tr><th>Вид · паразит</th><th>Группа препарата</th><th>E — ожидаемая эффективность</th><th>M — минимум (низ серой зоны)</th><th>Источник</th></tr></thead>
         <tbody>
           <tr><td rowspan="3"><b>Лошади</b><br>стронгиляты</td><td>бензимидазолы (фенбендазол, оксибендазол, фебантел)</td><td class="num"><em>95%</em></td><td class="num">90%</td><td>NOAH (UK)<span class="ds-fn" title="NOAH: FECRT Testing in Horses">3</span></td></tr>
           <tr><td>пирантел</td><td class="num"><em>90%</em></td><td class="num">85%</td><td>NOAH (UK)<sup>3</sup></td></tr>
@@ -605,6 +650,13 @@
     if (r.ci && (r.ci.valid < r.ci.iters * 0.99)) {
       warns.push('<b>бутстрэп с пропусками:</b> реплик ' + r.ci.valid + ' из ' + r.ci.iters + ' — в перевыборках встречались нулевые счёты до лечения.');
     }
+    /* Аудит SW-17 (доп., D4): при наблюдаемых 100% перцентильный бутстрэп
+     * вырождается в ДИ [100,100] — гайдлайн (разд. 2.5) прямо предупреждает:
+     * осмысленный интервал при 100% дают лишь немногие методы (байес-
+     * инструменты — fecrt.com). Не молчим об этом. */
+    if (r.point === 100 && r.ci && r.ci.lo === 100 && r.ci.hi === 100) {
+      warns.push('<b>наблюдаемые 100%.</b> ДИ вырождается в [100, 100] — при стопроцентной наблюдаемой эффективности осмысленный интервал дают лишь немногие методы (WAAVP-2023, разд. 2.5; байес-инструменты — fecrt.com).');
+    }
     if (r.genus && r.genus.warn.length) {
       r.genus.warn.forEach(function (w) { warns.push('<b>культура L3.</b> ' + esc(w) + '.'); });
     }
@@ -644,7 +696,7 @@
       h += '</tbody></table></div>';
     }
 
-    h += '<p class="fx-thrline">' + esc(r.species) + ' · ' + esc(r.drug) + ' · пороги: восприимчив ≥ ' + r.thr.E + '% · резистентность &lt; ' + r.thr.M + '% · проба после лечения: ' + esc(r.intervalDays) + '</p>';
+    h += '<p class="fx-thrline">' + esc(r.species) + ' · ' + esc(r.drug) + ' · пороги: E = ' + r.thr.E + '% (ожидаемая) · M = ' + r.thr.M + '% (низ серой зоны) · проба после лечения: ' + esc(r.intervalDays) + '</p>';
     h += '<div class="fx-actions">'
        + '<button class="ds-btn ds-btn--primary" id="btn-copy" type="button">копировать отчёт</button>'
        + '<button class="ds-btn" id="btn-print" type="button">печать бланка</button>'
@@ -690,7 +742,14 @@
     ta.style.position = 'fixed'; ta.style.left = '-9999px';
     document.body.appendChild(ta);
     ta.select();
-    try { document.execCommand('copy'); done(); } catch (e) {}
+    /* QA Task 223 (З2): execCommand('copy') отказывает тихо (false, не бросок) —
+     * не обещать успех, которого не было */
+    try {
+      if (document.execCommand('copy')) done();
+      else toast('копирование не удалось — выделите отчёт и скопируйте вручную');
+    } catch (e) {
+      toast('копирование не удалось — выделите отчёт и скопируйте вручную');
+    }
     document.body.removeChild(ta);
   }
   function toast(msg) {

@@ -93,6 +93,24 @@ test('fecrControl: поправка на динамику контрольной
   assert.ok(near(FECRT.fecrControl([500], [100], [400], [400]), 80, 1e-9));
 });
 
+test('fecr парный: опубликованные FECR Maurizio et al. 2024 (козы, n=10)', () => {
+  /* Аудит SW-17 §5 (B): BMC Vet Res 2024;20, Table 2 — тотальные счёты яиц
+   * 10 животных (D0/D14); при равном n точечная оценка эквивалентна средним.
+   * Публикация округляет до 0.1% — сверяем с точностью 0.05 п.п. */
+  const pub = [
+    { d0: 613, d14: 7, fecr: 98.9 },
+    { d0: 260, d14: 57, fecr: 78.1 },
+    { d0: 1600, d14: 0, fecr: 100 },
+    { d0: 173, d14: 16, fecr: 90.8 },
+    { d0: 2386, d14: 194, fecr: 91.9 },
+  ];
+  for (const t of pub) {
+    const got = FECRT.fecr(Array(10).fill(t.d0 / 10), Array(10).fill(t.d14 / 10));
+    assert.ok(Math.abs(got - t.fecr) <= 0.05,
+      t.d0 + '→' + t.d14 + ': код ' + got.toFixed(3) + '% против публикации ' + t.fecr + '%');
+  }
+});
+
 /* ---------- 3. бутстрэп: детерминированность и золото -------------------- */
 
 test('бутстрэп парный: детерминирован (один ввод — один ДИ)', () => {
@@ -163,30 +181,50 @@ test('THRESHOLDS: у каждой группы препарата есть че�
   }
 });
 
-/* ---------- 5. классификация: границы серой зоны -------------------------- */
+/* ---------- 5. классификация: WAAVP-2023 (Kaplan et al. 2023, разд. 2.6) -- */
+/* Аудит SW-17 (Task 223): прежние правила «вся ДИ ≥ E / вся ДИ < M»
+ * систематически расширяли серую зону — 4 опубликованных вердикта
+ * Maurizio et al. 2024 не воспроизводились. Правила гайдлайна:
+ * S — lo ≥ M И hi ≥ E; R — hi < E; иначе серая зона (hi ≥ E при lo < M).
+ * «Low resistant» гайдлайна (hi < E при lo ≥ M) в трёхкатегорной
+ * витрине сворачивается в R. */
 
-test('classify: вся 90% ДИ ≥ E — восприимчив', () => {
+test('classify: lo ≥ M и hi ≥ E — восприимчив', () => {
   assert.equal(FECRT.classify({ lo: 95, hi: 99 }, { E: 95, M: 90 }).code, 'S');
   assert.equal(FECRT.classify({ lo: 96, hi: 99 }, { E: 95, M: 90 }).code, 'S');
 });
 
-test('classify: вся 90% ДИ < M — резистентность', () => {
+test('classify: hi < E — резистентность (и при lo ≥ M — «low resistant»)', () => {
   assert.equal(FECRT.classify({ lo: 80, hi: 89.9 }, { E: 95, M: 90 }).code, 'R');
+  assert.equal(FECRT.classify({ lo: 92, hi: 94 }, { E: 95, M: 90 }).code, 'R');
 });
 
-test('classify: ДИ накрывает пороги — серая зона', () => {
-  assert.equal(FECRT.classify({ lo: 80, hi: 92 }, { E: 95, M: 90 }).code, 'GREY');
-  assert.equal(FECRT.classify({ lo: 93, hi: 96 }, { E: 95, M: 90 }).code, 'GREY');
+test('classify: hi ≥ E при lo < M — серая зона', () => {
+  assert.equal(FECRT.classify({ lo: 80, hi: 96 }, { E: 95, M: 90 }).code, 'GREY');
+  assert.equal(FECRT.classify({ lo: 89.9, hi: 95 }, { E: 95, M: 90 }).code, 'GREY');
+});
+
+test('classify: опубликованные вердикты Maurizio et al. 2024 (козы, 95/90)', () => {
+  /* Аудит SW-17 §5 (C): 90% ДИ публикации (BMC Vet Res 2024;20, Tables 2–3)
+   * против правил WAAVP-2023 — прежний код на всех четырёх давал GREY. */
+  assert.equal(FECRT.classify({ lo: 90.6, hi: 99.8 }, { E: 95, M: 90 }).code, 'S');     /* G4_ML T3 — публикация S */
+  assert.equal(FECRT.classify({ lo: 86.4, hi: 93.7 }, { E: 95, M: 90 }).code, 'R');     /* G4_ML — публикация R */
+  assert.equal(FECRT.classify({ lo: 82.2, hi: 96.3 }, { E: 95, M: 90 }).code, 'GREY');  /* G4_ML T2 — публикация INC */
+  assert.equal(FECRT.classify({ lo: 90.9, hi: 92.7 }, { E: 95, M: 90 }).code, 'R');     /* G5_BZ — LR гайдлайна: в 3 категориях R */
 });
 
 test('classify: лошадиные пороги МЛ жёстче жвачных', () => {
-  // 96% на жвачных — серая зона (90–95 не накрывает... lo=96≥95 → S),
-  // на лошадином МЛ (E=98) — серая зона
+  // 96–97% на жвачных БЗД (E=95) — восприимчив; на лошадином МЛ (E=98) — резистентность
   assert.equal(FECRT.classify({ lo: 96, hi: 97 }, FECRT.THRESHOLDS.smallRuminant.drugs.bzd).code, 'S');
-  assert.equal(FECRT.classify({ lo: 96, hi: 97 }, FECRT.THRESHOLDS.horse.drugs.ml).code, 'GREY');
-  // а 94% — резистентность для лошадиного МЛ (M=95), но серая зона для БЗД лошади (M=90)
-  assert.equal(FECRT.classify({ lo: 92, hi: 94 }, FECRT.THRESHOLDS.horse.drugs.ml).code, 'R');
-  assert.equal(FECRT.classify({ lo: 92, hi: 94 }, FECRT.THRESHOLDS.horse.drugs.bzd).code, 'GREY');
+  assert.equal(FECRT.classify({ lo: 96, hi: 97 }, FECRT.THRESHOLDS.horse.drugs.ml).code, 'R');
+  // lo=92 ≥ M=90 и hi=96 ≥ E: S для БЗД лошади, но hi < 98 — R для МЛ лошади
+  assert.equal(FECRT.classify({ lo: 92, hi: 96 }, FECRT.THRESHOLDS.horse.drugs.bzd).code, 'S');
+  assert.equal(FECRT.classify({ lo: 92, hi: 96 }, FECRT.THRESHOLDS.horse.drugs.ml).code, 'R');
+});
+
+test('classify: границы порогов включаются (hi = E — ещё не R, lo = M — уже S)', () => {
+  assert.equal(FECRT.classify({ lo: 80, hi: 95 }, { E: 95, M: 90 }).code, 'GREY');
+  assert.equal(FECRT.classify({ lo: 90, hi: 95 }, { E: 95, M: 90 }).code, 'S');
 });
 
 test('classify: ДИ нет — честная серая зона с причиной', () => {
@@ -240,7 +278,9 @@ test('compute: сквозной пример овцы×БЗД — точка, Д
   assert.ok(near(r.point, 800 / 9, 1e-9));
   assert.ok(near(r.ci.lo, 83.33333333333334, 1e-9));
   assert.ok(near(r.ci.hi, 94.44444444444444, 1e-9));
-  assert.equal(r.verdict.code, 'GREY');
+  /* WAAVP-2023 (аудит SW-17): hi=94.4 < E=95 — верх ДИ ниже ожидаемой
+   * эффективности: прежде «серая зона», теперь честное R */
+  assert.equal(r.verdict.code, 'R');
   assert.equal(r.n, 4);
   assert.equal(r.nMin, 10);   /* UI обязан подсветить: животных меньше нормы */
   assert.match(r.nMinSource, /10/);  /* источник нормы доезжает до рендера */
@@ -273,6 +313,17 @@ test('compute: нет яиц до лечения — тест не опреде�
     pre: [0, 0, 0], post: [0, 0, 0],
   });
   assert.match(r.error, /нулю|нет яиц/);
+});
+
+test('compute: ноль «до» в контрольной группе — ошибка называет группу (QA З3)', () => {
+  /* Лечение 500,400→50,40 при контроле 0,0→0,0: ноль — в контроле,
+   * сообщение обязано говорить о контрольной группе, а не о лечении. */
+  const r = FECRT.compute({
+    species: 'smallRuminant', drug: 'bzd',
+    pre: [500, 400], post: [50, 40],
+    control: { pre: [0, 0], post: [0, 0] },
+  });
+  assert.match(r.error, /контрольной группе/);
 });
 
 test('compute: неизвестный вид/препарат — ошибка, не тихий NaN', () => {
@@ -333,10 +384,6 @@ test('compute: счёт не снизился — 0%, вердикт «рези�
   });
   assert.ok(near(r.point, 0, 1e-9));
   assert.equal(r.verdict.code, 'R');
-});
-
-test('classify: верх ДИ ровно на минимуме M — серая зона (сравнение строгое)', () => {
-  assert.equal(FECRT.classify({ lo: 80, hi: 90 }, { E: 95, M: 90 }).code, 'GREY');
 });
 
 test('compute: n=1 — не падает, ДИ схлопывается в точку', () => {
